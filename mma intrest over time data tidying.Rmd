@@ -1,0 +1,28 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Creating the mma hype over time dataset 
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+mma_interest_timeline <- read_csv("mma interest timeline - mma interest timeline.csv", col_types = cols(conor = col_double(), floyd = col_double(), jorge = col_double(), khabib = col_double(), month = col_date(format = "%m/%d/%Y"), nate = col_double()))
+```
+
+```{r}
+mma_interest_timeline_cities <- mma_interest_timeline %>% mutate(conor = replace_na(conor, 0), nate = replace_na(nate, 0), khabib = replace_na(khabib, 0), floyd = replace_na(floyd, 0), jorge = replace_na(jorge, 0)) %>% pivot_longer(cols = c("conor", "nate", "khabib", "floyd", "jorge"), names_to = "fighter", values_to = "interest") %>% mutate(region = case_when(fighter == "conor" ~ "Dublin", fighter == "nate" ~ "Stockton", fighter == "khabib" ~ "Moscow", fighter == "floyd" ~ "Grand Rapids", fighter == "jorge" ~ "Miami"))
+```
+
+```{r}
+world <- as_tibble(map_data("world"))
+world_cities <- maps::world.cities
+ufc_cities <- world_cities %>% filter(name %in% c("Moscow", "Miami", "Dublin", "Stockton", "Grand Rapids")) %>% filter(!row_number() %in% 2)
+```
+
+```{r}
+(mma_interest_timeline_cities_lat_long <- mma_interest_timeline_cities %>% left_join(ufc_cities, by = c("region" = "name")) %>% dplyr:::filter(month > '2015-01-01'))
+```
